@@ -1,14 +1,16 @@
 <?php
-// Kode cerdas: Otomatis mendeteksi Railway (Cloud) atau XAMPP (Lokal)
-$host = getenv('MYSQLHOST') ?: 'localhost';
-$user = getenv('MYSQLUSER') ?: 'root';
-$pass = getenv('MYSQLPASSWORD') ?: ''; // Kosongkan jika XAMPP lokalmu tanpa password
-$db   = getenv('MYSQLDATABASE') ?: 'cafe_cloud_erp'; // Ganti 'cafe_cloud_erp' sesuai nama DB lokalmu di phpMyAdmin
-$port = getenv('MYSQLPORT') ?: '3306';
+// Mengambil variabel database dari lingkungan Railway secara aman
+$host     = getenv('MYSQLHOST');
+$user     = getenv('MYSQLUSER');
+$password = getenv('MYSQLPASSWORD');
+$database = getenv('MYSQLDATABASE');
+$port     = getenv('MYSQLPORT');
 
-$koneksi = mysqli_connect($host, $user, $pass, $db, $port);
+// Melakukan koneksi ke database beserta port-nya
+$koneksi = mysqli_connect($host, $user, $password, $database, $port);
 
+// Cek koneksi
 if (!$koneksi) {
-    die("Koneksi gagal: " . mysqli_connect_error());
+    die("Koneksi database gagal: " . mysqli_connect_error());
 }
 ?>
