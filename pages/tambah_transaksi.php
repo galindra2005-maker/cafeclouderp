@@ -1,16 +1,16 @@
 <?php
+// Pastikan path ke koneksi benar
 include '../config/koneksi.php';
 
 if(isset($_POST['simpan'])){
-
-    $no_transaksi = $_POST['no_transaksi'];
-    $metode       = $_POST['metode'];
-    $total        = $_POST['total'];
+    // Mengambil data dari form
+    $no_transaksi = isset($_POST['no_transaksi']) ? $_POST['no_transaksi'] : '';
+    $metode       = isset($_POST['metode']) ? $_POST['metode'] : '';
+    $total        = isset($_POST['total']) ? (int)$_POST['total'] : 0;
 
     // =========================
     // LOGIC AI REKONSILIASI
     // =========================
-
     if($total < 30000){
         $status = "Matched";
     }
@@ -22,20 +22,24 @@ if(isset($_POST['simpan'])){
     }
 
     // =========================
-    // INSERT DATABASE (FIXED)
+    // INSERT DATABASE (STRICT MODE SAFE)
     // =========================
     
-    // Perbaikan: Tidak menyertakan kolom id agar terisi otomatis oleh auto_increment
-    $query = "INSERT INTO transaksi_kasir (no_transaksi, metode, total, status_ai) 
-              VALUES ('$no_transaksi', '$metode', '$total', '$status')";
+    // Kita gunakan prepared statement untuk mencegah error tipe data dan SQL injection
+    $stmt = $conn->prepare("INSERT INTO transaksi_kasir (no_transaksi, metode, total, status_ai) VALUES (?, ?, ?, ?)");
     
-    $result = mysqli_query($conn, $query);
-
-    if($result){
-        header("Location: ../index.php");
-        exit(); // Wajib ditambahkan agar proses redirect sempurna
+    if ($stmt) {
+        $stmt->bind_param("ssis", $no_transaksi, $metode, $total, $status);
+        
+        if ($stmt->execute()) {
+            $stmt->close();
+            header("Location: ../index.php");
+            exit(); 
+        } else {
+            die("Execute failed: " . $stmt->error);
+        }
     } else {
-        die("Error database: " . mysqli_error($conn));
+        die("Prepare failed: " . $conn->error);
     }
 }
 ?>
@@ -102,6 +106,5 @@ if(isset($_POST['simpan'])){
         </div>
     </div>
 </div>
-
 </body>
 </html>
